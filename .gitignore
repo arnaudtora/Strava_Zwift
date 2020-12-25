@@ -1,0 +1,9 @@
+
+# Pythons Files
+__pycache__
+*~
+
+
+# Ignore Files
+creds.txt
+idees.txt
