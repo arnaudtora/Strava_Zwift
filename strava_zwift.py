@@ -87,6 +87,45 @@ def display_athlete(client):
 	print("FTP " + athlete.ftp)
 
 
+
+def display_activity(activity, client):
+	""" 
+		Affichage detaille de l'activite en parametre 
+			- id
+			- name
+			- kudos_count
+	"""
+
+	data = {}
+	data['id'] = activity.id
+	data['name'] = activity.name
+	data['kudos'] = activity.kudos_count
+	data['gear_id'] = activity.gear_id
+	# activity['start_date_local'] = activity['start_date_local']
+	# activity['type'] = activity['type']
+	# activity['distance'] = activity['distance']
+	# activity['elapsed_time'] = activity['elapsed_time']
+	print ("La derniere activite retrouvee est :")
+	print (data)
+	print ("Materiel : {}".format(client.get_gear(activity.gear_id)))
+
+
+def display_last_activity(client):
+	""" Affiche la derniere activite, de maniere detaille """
+
+	print ("\nDisplay last activity")
+	for activity in client.get_activities(limit=1):
+		display_activity(activity, client)
+
+
+def display_N_activity(client, n):
+	""" Affichage simple des N dernieres activitees"""
+
+	print ("\nDisplay last {} activity".format(n))
+	for activity in client.get_activities(limit=n):
+		print("{0.id} - {0.name} - {0.moving_time}".format(activity))
+
+
 ######## MAIN ##########
 print ("")
 # creds pour read,activity:write,activity:read_all,profile:read_all,read_all
@@ -96,3 +135,6 @@ refresh_acces_token(creds)
 client = get_client(creds)
 
 display_athlete(client)
+
+display_last_activity(client)
+display_N_activity(client, 20)
