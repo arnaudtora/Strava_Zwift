@@ -2,6 +2,7 @@
 # -*-coding:Utf-8 -*
 
 from stravalib import Client
+from stravalib import model, exc, attributes, unithelper as uh
 
 from datetime import datetime, timedelta
 import requests
@@ -10,6 +11,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 auth_url = "https://www.strava.com/oauth/token"
 activites_url = "https://www.strava.com/api/v3/athlete/activities"
+
 
 
 def get_creds(chemin):
@@ -43,7 +45,6 @@ def get_creds(chemin):
 
 
 
-
 def refresh_acces_token(creds):
 	"""	Refresh des tokens pour communiquer avec Strava	"""
 
@@ -71,8 +72,8 @@ def get_client(creds):
 	""" Mise a jour du client avec le nouveau token """
 
 	client = Client(access_token=creds["AccesToken"])
-
 	return client
+
 
 
 def display_athlete(client):
@@ -110,6 +111,7 @@ def display_activity(activity, client):
 	print ("Materiel : {}".format(client.get_gear(activity.gear_id)))
 
 
+
 def display_last_activity(client):
 	""" Affiche la derniere activite, de maniere detaille """
 
@@ -118,12 +120,30 @@ def display_last_activity(client):
 		display_activity(activity, client)
 
 
+
 def display_N_activity(client, n):
 	""" Affichage simple des N dernieres activitees"""
 
 	print ("\nDisplay last {} activity".format(n))
 	for activity in client.get_activities(limit=n):
 		print("{0.id} - {0.name} - {0.moving_time}".format(activity))
+
+
+
+def create_manual_run(client):
+	""" Creation d'une activite manuelle """
+
+	print ("\nCreation d'une activite")
+	now = datetime.now().replace(microsecond=0)
+	a = client.create_activity("[fake] Test_API_Strava - Envoi via l'API Python #GEEK",
+		description="Debut de l'utilisation de l'API, ça ouvre pleins de possibilite :P",
+		activity_type=model.Activity.RUN,
+		start_date_local=now,
+		elapsed_time=str(timedelta(hours=1, minutes=4, seconds=5).total_seconds()).replace('.0', ''),
+		distance=uh.kilometers(15.2))
+
+	print ("Activite cree, voir https://www.strava.com/activities/" + str(a.id))
+	return a.id
 
 
 ######## MAIN ##########
@@ -138,3 +158,5 @@ display_athlete(client)
 
 display_last_activity(client)
 display_N_activity(client, 20)
+
+create_manual_run(client)
