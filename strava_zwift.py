@@ -75,6 +75,17 @@ def get_client(creds):
 	return client
 
 
+def display_athlete(client):
+	""" Affichage des informations de l'Athlete """
+
+	athlete = client.get_athlete()
+	print ("\n### Display Athlete ###")
+	print("Athlete's name is {} {}, based in {}, {}".format(athlete.firstname, athlete.lastname, athlete.city, athlete.country))
+	print("Photo URL " + athlete.profile)
+	print("all_run_totals : " + str(athlete.stats.all_run_totals.distance))
+	print("all_bike_totals : " + str(athlete.stats.all_ride_totals.distance))
+	print("FTP " + athlete.ftp)
+
 
 ######## MAIN ##########
 print ("")
@@ -83,3 +94,5 @@ print ("")
 creds = get_creds("creds.txt")
 refresh_acces_token(creds)
 client = get_client(creds)
+
+display_athlete(client)
