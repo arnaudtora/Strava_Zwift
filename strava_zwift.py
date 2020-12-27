@@ -5,6 +5,7 @@ from stravalib import Client
 from stravalib import model, exc, attributes, unithelper as uh
 
 from datetime import datetime, timedelta
+import os
 import requests
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -143,7 +144,26 @@ def create_manual_run(client):
 		distance=uh.kilometers(15.2))
 
 	print ("Activite cree, voir https://www.strava.com/activities/" + str(a.id))
-	return a.id
+
+
+def upload_existing_activite(client, activity_file):
+	""" Upload d'une activite existante a partir d'un fichier exporte de Strava """
+
+	print ("\nUpload d'une activite")
+
+	# On prend le nom du fichier comme nom d'activite
+	# On recupere aussi son extension (data_type)
+	activite_name, data_type = os.path.splitext(activity_file)
+	data_type = data_type.replace(".", "")
+	print ("activite_name : " + activite_name)
+	print ("data_type     : " + data_type)
+
+	with open(activity_file, 'rb') as fp:
+		uploader = client.upload_activity(fp, data_type=data_type, name=activite_name, activity_type="VirtualRide")
+		print (uploader.response)
+
+		a = uploader.wait()		
+		print ("Activite upload, voir https://www.strava.com/activities/" + str(a.id))
 
 
 ######## MAIN ##########
@@ -160,3 +180,6 @@ display_last_activity(client)
 display_N_activity(client, 20)
 
 create_manual_run(client)
+
+filename_download = "Ocean_lava_Cliffside_Loop.fit"
+upload_existing_activite(client, filename_download)
