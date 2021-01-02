@@ -16,17 +16,26 @@ activites_url = "https://www.strava.com/api/v3/athlete/activities"
 
 
 
-def get_creds(chemin):
+def get_creds(creds_file):
 	"""
-		Lecture et recuperation des identifiants de connexions
+	Lecture et recuperation des identifiants de connexions
 		- ID
 		- SecretClient
 		- Token
 		- Code
-		- RefreshCode	"""
+		- RefreshCode
+		- Email
+		- Password
+
+	:param creds_file: Le fichier de credentials
+	:type creds_file: str
+
+	:return: Un dictionnaire des credentials
+	:rtype: dict
+	"""
 	creds = {}
 
-	with open(chemin, "r") as fichier:
+	with open(creds_file, "r") as fichier:
 		contenu = fichier.readlines()
 		for ligne in contenu:
 			ligne = ligne.replace(" ", "")
@@ -50,10 +59,13 @@ def get_creds(chemin):
 	return (creds)
 
 
-
 def refresh_acces_token(creds):
-	"""	Refresh des tokens pour communiquer avec Strava	"""
+	"""	
+	Refresh des tokens pour communiquer avec Strava	
 
+	:param creds: Le dictionnaire de credentials
+	:type creds: dict
+	"""
 	payload = {
 		'client_id': creds["id"],
 		'client_secret': creds["SecretClient"],
@@ -73,26 +85,34 @@ def refresh_acces_token(creds):
 	print(datetime.utcfromtimestamp(expiry_ts).strftime('%Y-%m-%d %H:%M:%S'))
 
 
-
 def get_client(creds):
-	""" Mise a jour du client avec le nouveau token """
+	""" 
+	Mise a jour du client avec le nouveau token 
+
+	:param creds: Le dictionnaire de credentials
+	:type creds: dict
+
+	:return: La structure client
+	:rtype: :class:`stravalib.client`
+	"""
 
 	client = Client(access_token=creds["AccesToken"])
 	return client
 
 
-
 def display_athlete(client):
-	""" Affichage des informations de l'Athlete """
+	""" 
+	Affichage des informations de l'Athlete 
 
+	:param client: La structure client
+	:type client: :class:`stravalib.client`
+	"""
 	athlete = client.get_athlete()
 	print ("\n### Display Athlete ###")
 	print("Athlete's name is {} {}, based in {}, {}".format(athlete.firstname, athlete.lastname, athlete.city, athlete.country))
 	print("Photo URL " + athlete.profile)
 	print("all_run_totals : " + str(athlete.stats.all_run_totals.distance))
 	print("all_bike_totals : " + str(athlete.stats.all_ride_totals.distance))
-#
-
 
 
 def display_activity(activity, client):
@@ -101,6 +121,12 @@ def display_activity(activity, client):
 			- id
 			- name
 			- kudos_count
+
+	:param activity: L'activite a afficher
+	:type activity: :class:`stravalib.model.Activity`
+
+	:param client: La structure client
+	:type client: :class:`stravalib.client`
 	"""
 
 	data = {}
@@ -118,16 +144,27 @@ def display_activity(activity, client):
 
 
 def get_last_activity(client):
-	""" Affiche la derniere activite, de maniere detaille """
+	""" 
+	Affiche la derniere activite, de maniere detaille 
+	
+	:param client: La structure client
+	:type client: :class:`stravalib.client`
 
+	:return: La derniere activite
+	:rtype: :class:`stravalib.model.Activity`
+	"""
 	print ("\nDisplay last activity")
 	for activity in client.get_activities(limit=1):
 		return activity
 
 
 def display_last_activity(client):
-	""" Affiche la derniere activite, de maniere detaille """
+	""" 
+	Affiche la derniere activite, de maniere detaille 
 
+	:param client: La structure client
+	:type client: :class:`stravalib.client`
+	"""
 	print ("\nDisplay last activity")
 	for activity in client.get_activities(limit=1):
 		display_activity(activity, client)
@@ -135,7 +172,15 @@ def display_last_activity(client):
 
 
 def display_N_activity(client, n):
-	""" Affichage simple des N dernieres activitees"""
+	""" 
+	Affichage simple des N dernieres activitees
+
+	:param client: La structure client
+	:type client: :class:`stravalib.client`
+
+	:param n: Le nombre d'activite maximum
+	:type n: int
+	"""
 
 	print ("\nDisplay last {} activity".format(n))
 	for activity in client.get_activities(limit=n):
@@ -144,7 +189,12 @@ def display_N_activity(client, n):
 
 
 def create_manual_run(client):
-	""" Creation d'une activite manuelle """
+	""" 
+	Creation d'une activite manuelle 
+
+	:param client: La structure client
+	:type client: :class:`stravalib.client`
+	"""
 
 	print ("\nCreation d'une activite")
 	now = datetime.now().replace(microsecond=0)
@@ -164,6 +214,9 @@ def get_webclient(creds):
 
 	:param creds: Les donnees de credentials
 	:type creds: dict
+
+	:return: La structure WebClient
+	:rtype: :class:`WebClient`
 	"""
 
 	# Log in (requires API token and email/password for the site)
@@ -182,7 +235,7 @@ def get_activity_data(webclient, last_activite):
 	:type webclient: :class:`WebClient`
 
 	:param last_activite: The activity to retrieve.
-	:type last_activite: :class:`ActivityFile`
+	:type last_activite: :class:`stravalib.model.Activity`
 
 	:return: Le `filename` du fichier recupere et cree
 	:rtype: str
@@ -203,8 +256,15 @@ def get_activity_data(webclient, last_activite):
 
 
 def upload_existing_activite(client, activity_file):
-	""" Upload d'une activite existante a partir d'un fichier exporte de Strava """
+	""" 
+	Upload d'une activite existante a partir d'un fichier exporte de Strava 
 
+	:param client: La structure client
+	:type client: :class:`stravalib.client`
+
+	:param activity_file: Le nom du fichier a envoyer a Strava
+	:type activity_file: str
+	"""
 	print ("\nUpload d'une activite")
 
 	# On prend le nom du fichier comme nom d'activite
