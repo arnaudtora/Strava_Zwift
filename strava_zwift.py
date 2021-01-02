@@ -91,7 +91,7 @@ def display_athlete(client):
 	print("Photo URL " + athlete.profile)
 	print("all_run_totals : " + str(athlete.stats.all_run_totals.distance))
 	print("all_bike_totals : " + str(athlete.stats.all_ride_totals.distance))
-	print("FTP " + athlete.ftp)
+#
 
 
 
@@ -163,7 +163,7 @@ def get_webclient(creds):
 	Log into the website with WebClient
 
 	:param creds: Les donnees de credentials
-    :type creds: dict
+	:type creds: dict
 	"""
 
 	# Log in (requires API token and email/password for the site)
@@ -179,13 +179,13 @@ def get_activity_data(webclient, last_activite):
 	Recuperation du fichier de l'activite voulue en utilisant WebClient 
 
 	:param webclient: The Webclient class
-    :type webclient: :class:`WebClient`
+	:type webclient: :class:`WebClient`
 
 	:param last_activite: The activity to retrieve.
 	:type last_activite: :class:`ActivityFile`
 
 	:return: Le `filename` du fichier recupere et cree
-    :rtype: str
+	:rtype: str
 	"""
 	activity_id = last_activite.id
 
@@ -212,7 +212,7 @@ def upload_existing_activite(client, activity_file):
 	activite_name, data_type = os.path.splitext(activity_file)
 	data_type = data_type.replace(".", "")
 	print ("activite_name : " + activite_name)
-	print ("data_type     : " + data_type)
+	print ("data_type	 : " + data_type)
 
 	with open(activity_file, 'rb') as fp:
 		uploader = client.upload_activity(fp, data_type=data_type, name=activite_name, activity_type="VirtualRide")
@@ -226,21 +226,28 @@ def upload_existing_activite(client, activity_file):
 print ("")
 # creds pour read,activity:write,activity:read_all,profile:read_all,read_all
 # voir https://www.youtube.com/watch?v=sgscChKfGyg&ab_channel=Franchyze923
-creds = get_creds("creds.txt")
-refresh_acces_token(creds)
-client = get_client(creds)
 
-display_athlete(client)
+# Client source avec ses creds
+creds_source = get_creds("creds_source.txt")
+refresh_acces_token(creds_source)
+client_source = get_client(creds_source)
 
-display_last_activity(client)
-display_N_activity(client, 20)
+# Client destination avec ses creds
+creds_dest = get_creds("creds_dest.txt")
+refresh_acces_token(creds_dest)
+client_dest = get_client(creds_dest)
 
-#create_manual_run(client)
+display_athlete(client_source)
 
-last_activite = get_last_activity(client)
-print ("Derniere activite = " + str(last_activite.id))
+display_last_activity(client_source)
+display_N_activity(client_source, 20)
 
-webclient = get_webclient(creds)
-data_filename = get_activity_data(webclient, last_activite)
+#create_manual_run(client_dest)
 
-upload_existing_activite(client, data_filename)
+last_activite_source = get_last_activity(client_source)
+print ("Derniere activite = " + str(last_activite_source.id))
+
+webclient_source = get_webclient(creds_source)
+data_filename = get_activity_data(webclient_source, last_activite_source)
+
+upload_existing_activite(client_dest, data_filename)
