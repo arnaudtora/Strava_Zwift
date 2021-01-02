@@ -11,9 +11,18 @@ import requests
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+
+__author__ = "Arnaud TORA"
+__copyright__ = "Copyright 2020"
+__credits__ = "Arnaud TORA"
+__license__ = "GPL"
+__version__ = "0.1.0"
+__maintainer__ = "Arnaud TORA"
+__status__ = "Dev"
+
+
 auth_url = "https://www.strava.com/oauth/token"
 activites_url = "https://www.strava.com/api/v3/athlete/activities"
-
 
 
 def get_creds(creds_file):
@@ -170,7 +179,6 @@ def display_last_activity(client):
 		display_activity(activity, client)
 
 
-
 def display_N_activity(client, n):
 	""" 
 	Affichage simple des N dernieres activitees
@@ -185,7 +193,6 @@ def display_N_activity(client, n):
 	print ("\nDisplay last {} activity".format(n))
 	for activity in client.get_activities(limit=n):
 		print("{0.id} - {0.name} - {0.moving_time}".format(activity))
-
 
 
 def create_manual_run(client):
@@ -271,6 +278,7 @@ def upload_existing_activite(client, activity_file):
 	# On recupere aussi son extension (data_type)
 	activite_name, data_type = os.path.splitext(activity_file)
 	data_type = data_type.replace(".", "")
+
 	print ("activite_name : " + activite_name)
 	print ("data_type	 : " + data_type)
 
