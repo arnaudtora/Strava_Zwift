@@ -3,6 +3,7 @@
 
 from stravalib import Client
 from stravalib import model, exc, attributes, unithelper as uh
+from stravaweblib import WebClient, DataFormat
 
 from datetime import datetime, timedelta
 import os
@@ -41,6 +42,10 @@ def get_creds(chemin):
 				creds["Code"] = ligne.rsplit(":")[1]
 			if ligne.startswith("RefreshCode"):
 				creds["RefreshCode"] = ligne.rsplit(":")[1]
+			if ligne.startswith("Email"):
+				creds["Email"] = ligne.rsplit(":")[1]
+			if ligne.startswith("Password"):
+				creds["Password"] = ligne.rsplit(":")[1]
 
 	return (creds)
 
@@ -112,6 +117,13 @@ def display_activity(activity, client):
 	print ("Materiel : {}".format(client.get_gear(activity.gear_id)))
 
 
+def get_last_activity(client):
+	""" Affiche la derniere activite, de maniere detaille """
+
+	print ("\nDisplay last activity")
+	for activity in client.get_activities(limit=1):
+		return activity
+
 
 def display_last_activity(client):
 	""" Affiche la derniere activite, de maniere detaille """
@@ -144,6 +156,50 @@ def create_manual_run(client):
 		distance=uh.kilometers(15.2))
 
 	print ("Activite cree, voir https://www.strava.com/activities/" + str(a.id))
+
+
+def get_webclient(creds):
+	"""
+	Log into the website with WebClient
+
+	:param creds: Les donnees de credentials
+    :type creds: dict
+	"""
+
+	# Log in (requires API token and email/password for the site)
+	webclient = WebClient(access_token=creds["AccesToken"], email=creds["Email"], password=creds["Password"])
+	print ("WebClient : ")
+	print (webclient)
+
+	return webclient
+
+
+def get_activity_data(webclient, last_activite):	
+	""" 
+	Recuperation du fichier de l'activite voulue en utilisant WebClient 
+
+	:param webclient: The Webclient class
+    :type webclient: :class:`WebClient`
+
+	:param last_activite: The activity to retrieve.
+	:type last_activite: :class:`ActivityFile`
+
+	:return: Le `filename` du fichier recupere et cree
+    :rtype: str
+	"""
+	activity_id = last_activite.id
+
+	# Get the filename and data stream for the activity data
+	data = webclient.get_activity_data(activity_id, fmt=DataFormat.ORIGINAL)
+
+	# Save the activity data to disk using the server-provided filename
+	with open(data.filename, 'wb') as f:
+		for chunk in data.content:
+			if not chunk:
+				break
+			f.write(chunk)
+
+	return data.filename
 
 
 def upload_existing_activite(client, activity_file):
@@ -179,7 +235,12 @@ display_athlete(client)
 display_last_activity(client)
 display_N_activity(client, 20)
 
-create_manual_run(client)
+#create_manual_run(client)
 
-filename_download = "Ocean_lava_Cliffside_Loop.fit"
-upload_existing_activite(client, filename_download)
+last_activite = get_last_activity(client)
+print ("Derniere activite = " + str(last_activite.id))
+
+webclient = get_webclient(creds)
+data_filename = get_activity_data(webclient, last_activite)
+
+upload_existing_activite(client, data_filename)
