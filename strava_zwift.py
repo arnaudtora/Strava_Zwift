@@ -262,7 +262,7 @@ def get_activity_data(webclient, last_activite):
 	return data.filename
 
 
-def upload_existing_activite(client, activity_file):
+def upload_existing_activite(client, activity_file, is_HomeTrainer):
 	""" 
 	Upload d'une activite existante a partir d'un fichier exporte de Strava 
 
@@ -271,23 +271,42 @@ def upload_existing_activite(client, activity_file):
 
 	:param activity_file: Le nom du fichier a envoyer a Strava
 	:type activity_file: str
+
+	:param is_HomeTrainer: Definit si l'activite est de type HomeTrainer (VirtualRide) ou non (Ride)
+	:type is_HomeTrainer: bool
 	"""
 	print ("\nUpload d'une activite")
 
 	# On prend le nom du fichier comme nom d'activite
 	# On recupere aussi son extension (data_type)
 	activite_name, data_type = os.path.splitext(activity_file)
+	activite_name = activite_name.replace("_", " ")
 	data_type = data_type.replace(".", "")
 
 	print ("activite_name : " + activite_name)
 	print ("data_type	 : " + data_type)
 
+
 	with open(activity_file, 'rb') as fp:
-		uploader = client.upload_activity(fp, data_type=data_type, name=activite_name, activity_type="VirtualRide")
+		if is_HomeTrainer:
+			uploader = client.upload_activity(fp, data_type=data_type, name=activite_name, activity_type="VirtualRide")
+		else:
+			uploader = client.upload_activity(fp, data_type=data_type, name=activite_name, activity_type="Ride")
 		print (uploader.response)
 
-		a = uploader.wait()		
-		print ("Activite upload, voir https://www.strava.com/activities/" + str(a.id))
+		activity = uploader.wait()		
+		print ("Activite upload, voir https://www.strava.com/activities/" + str(activity.id))
+
+
+		if is_HomeTrainer:
+			# Update de l'activite cree avec le bon velo
+			# Recuperation de l'ID du velo nomme HomeTrainer ou HT
+			bikes = client.get_athlete().bikes
+			for bike in bikes:
+				if "HT" in bike.name or "Home Trainer" in bike.name:
+					print ("Update de l'activite avec le velo " + bike.name + " " + str(bike.id))
+					client.update_activity(activity.id, gear_id=bike.id)
+					break
 
 
 ######## MAIN ##########
@@ -299,23 +318,26 @@ print ("")
 creds_source = get_creds("creds_source.txt")
 refresh_acces_token(creds_source)
 client_source = get_client(creds_source)
+webclient_source = get_webclient(creds_source)
 
 # Client destination avec ses creds
 creds_dest = get_creds("creds_dest.txt")
 refresh_acces_token(creds_dest)
 client_dest = get_client(creds_dest)
 
-display_athlete(client_source)
+#display_athlete(client_source)
+#display_athlete(client_dest)
 
-display_last_activity(client_source)
-display_N_activity(client_source, 20)
+#display_last_activity(client_source)
+#display_N_activity(client_source, 20)
 
 #create_manual_run(client_dest)
 
+# Recuperation de la dernière activite renseignee, et upload sur le 2nd compte
 last_activite_source = get_last_activity(client_source)
 print ("Derniere activite = " + str(last_activite_source.id))
 
-webclient_source = get_webclient(creds_source)
 data_filename = get_activity_data(webclient_source, last_activite_source)
 
-upload_existing_activite(client_dest, data_filename)
+is_HomeTrainer = False
+upload_existing_activite(client_dest, data_filename, is_HomeTrainer)
