@@ -234,20 +234,20 @@ def get_webclient(creds):
 	return webclient
 
 
-def get_activity_data(webclient, last_activite):	
+def get_activity_data(webclient, activity):	
 	""" 
 	Recuperation du fichier de l'activite voulue en utilisant WebClient 
 
 	:param webclient: The Webclient class
 	:type webclient: :class:`WebClient`
 
-	:param last_activite: The activity to retrieve.
-	:type last_activite: :class:`stravalib.model.Activity`
+	:param activity: L'activite voulue.
+	:type activity: :class:`stravalib.model.Activity`
 
 	:return: Le `filename` du fichier recupere et cree
 	:rtype: str
 	"""
-	activity_id = last_activite.id
+	activity_id = activity.id
 
 	# Get the filename and data stream for the activity data
 	data = webclient.get_activity_data(activity_id, fmt=DataFormat.ORIGINAL)
@@ -309,6 +309,23 @@ def upload_existing_activite(client, activity_file, is_HomeTrainer):
 					break
 
 
+def delete_activity(client, webclient, activity):
+	"""
+	Suppression de l'activite definit par son id
+
+	:param client: La structure client
+	:type client: :class:`stravalib.client`
+
+	:param webclient: The Webclient class
+	:type webclient: :class:`WebClient`
+
+	:param activity: L'activite voulue.
+	:type activity: :class:`stravalib.model.Activity`
+	"""
+	# Delete the activity
+	print ("Suppression de l'activite : " + activity.name + " --- " +  str(activity.id))
+	client.delete_activity(activity.id)
+
 ######## MAIN ##########
 print ("")
 # creds pour read,activity:write,activity:read_all,profile:read_all,read_all
@@ -341,3 +358,7 @@ data_filename = get_activity_data(webclient_source, last_activite_source)
 
 is_HomeTrainer = False
 upload_existing_activite(client_dest, data_filename, is_HomeTrainer)
+
+is_delete_actity_source = False
+if is_delete_actity_source:
+	delete_activity(client_source, webclient_source, last_activite_source)
