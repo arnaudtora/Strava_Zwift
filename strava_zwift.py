@@ -7,6 +7,7 @@ from stravaweblib import WebClient, DataFormat
 
 from datetime import datetime, timedelta
 import os
+import time
 import requests
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -201,19 +202,22 @@ def create_manual_run(client):
 
 	:param client: La structure client
 	:type client: :class:`stravalib.client`
+
+	:return: La derniere activite
+	:rtype: :class:`stravalib.model.Activity`
 	"""
 
 	print ("\nCreation d'une activite")
 	now = datetime.now().replace(microsecond=0)
-	a = client.create_activity("[fake] Test_API_Strava - Envoi via l'API Python #GEEK",
+	activity = client.create_activity("[fake] Test_API_Strava - Envoi via l'API Python #GEEK",
 		description="Debut de l'utilisation de l'API, ça ouvre pleins de possibilite :P",
 		activity_type=model.Activity.RUN,
 		start_date_local=now,
 		elapsed_time=str(timedelta(hours=1, minutes=4, seconds=5).total_seconds()).replace('.0', ''),
 		distance=uh.kilometers(15.2))
 
-	print ("Activite cree, voir https://www.strava.com/activities/" + str(a.id))
-
+	print ("Activite cree, voir https://www.strava.com/activities/" + str(activity.id))
+	return activity
 
 def get_webclient(creds):
 	"""
@@ -309,12 +313,9 @@ def upload_existing_activite(client, activity_file, is_HomeTrainer):
 					break
 
 
-def delete_activity(client, webclient, activity):
+def delete_strava_activity(webclient, activity):
 	"""
 	Suppression de l'activite definit par son id
-
-	:param client: La structure client
-	:type client: :class:`stravalib.client`
 
 	:param webclient: The Webclient class
 	:type webclient: :class:`WebClient`
@@ -324,7 +325,7 @@ def delete_activity(client, webclient, activity):
 	"""
 	# Delete the activity
 	print ("Suppression de l'activite : " + activity.name + " --- " +  str(activity.id))
-	client.delete_activity(activity.id)
+	webclient.delete_activity(activity.id)
 
 ######## MAIN ##########
 print ("")
@@ -341,6 +342,7 @@ webclient_source = get_webclient(creds_source)
 creds_dest = get_creds("creds_dest.txt")
 refresh_acces_token(creds_dest)
 client_dest = get_client(creds_dest)
+webclient_dest = get_webclient(creds_dest)
 
 #display_athlete(client_source)
 #display_athlete(client_dest)
@@ -348,7 +350,11 @@ client_dest = get_client(creds_dest)
 #display_last_activity(client_source)
 #display_N_activity(client_source, 20)
 
-#create_manual_run(client_dest)
+# Test creation et suppression d'une activite
+#activity_create = create_manual_run(client_dest)
+#time.sleep(10)
+#delete_strava_activity(webclient_dest, activity_create)
+
 
 # Recuperation de la dernière activite renseignee, et upload sur le 2nd compte
 last_activite_source = get_last_activity(client_source)
@@ -361,4 +367,4 @@ upload_existing_activite(client_dest, data_filename, is_HomeTrainer)
 
 is_delete_actity_source = False
 if is_delete_actity_source:
-	delete_activity(client_source, webclient_source, last_activite_source)
+	delete_strava_activity(webclient_source, last_activite_source)
