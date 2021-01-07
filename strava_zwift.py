@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 import os
 import time
 import requests
+import argparse
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -163,7 +164,7 @@ def get_last_activity(client):
 	:return: La derniere activite
 	:rtype: :class:`stravalib.model.Activity`
 	"""
-	print ("\nDisplay last activity")
+	print ("\nGet last activity")
 	for activity in client.get_activities(limit=1):
 		return activity
 
@@ -266,7 +267,7 @@ def get_activity_data(webclient, activity):
 	return data.filename
 
 
-def upload_existing_activite(client, activity_file, is_HomeTrainer):
+def upload_existing_activite(client, activity_file, type_ride):
 	""" 
 	Upload d'une activite existante a partir d'un fichier exporte de Strava 
 
@@ -276,8 +277,8 @@ def upload_existing_activite(client, activity_file, is_HomeTrainer):
 	:param activity_file: Le nom du fichier a envoyer a Strava
 	:type activity_file: str
 
-	:param is_HomeTrainer: Definit si l'activite est de type HomeTrainer (VirtualRide) ou non (Ride)
-	:type is_HomeTrainer: bool
+	:param type_ride: Type d'activite entre {VirtualRide,Ride}
+	:type type_ride: str
 	"""
 	print ("\nUpload d'une activite")
 
@@ -292,7 +293,7 @@ def upload_existing_activite(client, activity_file, is_HomeTrainer):
 
 
 	with open(activity_file, 'rb') as fp:
-		if is_HomeTrainer:
+		if type_ride == "VirtualRide" :
 			uploader = client.upload_activity(fp, data_type=data_type, name=activite_name, activity_type="VirtualRide")
 		else:
 			uploader = client.upload_activity(fp, data_type=data_type, name=activite_name, activity_type="Ride")
@@ -302,7 +303,7 @@ def upload_existing_activite(client, activity_file, is_HomeTrainer):
 		print ("Activite upload, voir https://www.strava.com/activities/" + str(activity.id))
 
 
-		if is_HomeTrainer:
+		if type_ride == "VirtualRide" :
 			# Update de l'activite cree avec le bon velo
 			# Recuperation de l'ID du velo nomme HomeTrainer ou HT
 			bikes = client.get_athlete().bikes
@@ -327,7 +328,26 @@ def delete_strava_activity(webclient, activity):
 	print ("Suppression de l'activite : " + activity.name + " --- " +  str(activity.id))
 	webclient.delete_activity(activity.id)
 
-######## MAIN ##########
+
+
+parser = argparse.ArgumentParser(description="Strava_Zwift, pour transférer une activite d'un compte Strava vers un autre")
+parser.add_argument('--delete', 
+	action='store_true',
+	default=False,
+	help="Option pour supprimer l'activite source")
+parser.add_argument('--type_ride',
+	type=str,
+	default="VirtualRide",
+	choices=['VirtualRide', 'Ride'],
+	help="Choix du type d'activite (VirtualRide par defaut)")
+
+args = parser.parse_args()
+is_delete_actity_source = args.delete
+type_ride = args.type_ride
+
+#################################
+############ MAIN ###############
+#################################
 print ("")
 # creds pour read,activity:write,activity:read_all,profile:read_all,read_all
 # voir https://www.youtube.com/watch?v=sgscChKfGyg&ab_channel=Franchyze923
@@ -358,13 +378,11 @@ webclient_dest = get_webclient(creds_dest)
 
 # Recuperation de la dernière activite renseignee, et upload sur le 2nd compte
 last_activite_source = get_last_activity(client_source)
-print ("Derniere activite = " + str(last_activite_source.id))
+print ("Derniere activite = " + last_activite_source.name + " --- " + str(last_activite_source.id))
 
 data_filename = get_activity_data(webclient_source, last_activite_source)
 
-is_HomeTrainer = False
-upload_existing_activite(client_dest, data_filename, is_HomeTrainer)
+upload_existing_activite(client_dest, data_filename, type_ride)
 
-is_delete_actity_source = False
 if is_delete_actity_source:
 	delete_strava_activity(webclient_source, last_activite_source)
