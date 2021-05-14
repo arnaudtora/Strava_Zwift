@@ -156,7 +156,7 @@ def display_activity(activity, client):
 
 def get_last_activity(client):
 	""" 
-	Affiche la derniere activite, de maniere detaille 
+	Retourne la derniere activite
 	
 	:param client: La structure client
 	:type client: :class:`stravalib.client`
@@ -196,6 +196,31 @@ def display_N_activity(client, n):
 	for activity in client.get_activities(limit=n):
 		print("{0.id} - {0.name} - {0.moving_time}".format(activity))
 
+def get_first_N_activity(client, after, before, type_act, n):
+	""" 
+	Retourne les N premieres activites
+
+	:param client: La structure client
+	:type client: :class:`stravalib.client`
+
+	:param n: Le nombre d'activite maximum
+	:type n: int
+
+	:return: La derniere activite
+	:rtype: :class:`stravalib.model.Activity`
+	"""
+
+	list_act=[]
+	print ("\nGet first {} activity".format(n))
+	for activity in client.get_activities(after = after, before = before, limit=n):
+		if(type_act=="All"):
+			list_act.insert(0, activity)
+		if(type_act=="Run" and activity.type=="Run"):
+			list_act.insert(0, activity)
+		if(type_act=="Ride" and activity.type=="Ride"):
+			list_act.insert(0, activity)
+
+	return list_act
 
 def create_manual_run(client):
 	""" 
@@ -232,6 +257,8 @@ def get_webclient(creds):
 	"""
 
 	# Log in (requires API token and email/password for the site)
+	print("WebClient tentative connect")
+	print(creds["AccesToken"])
 	webclient = WebClient(access_token=creds["AccesToken"], email=creds["Email"], password=creds["Password"])
 	print ("WebClient : ")
 	print (webclient)
@@ -239,7 +266,7 @@ def get_webclient(creds):
 	return webclient
 
 
-def get_activity_data(webclient, activity):	
+def get_activity_data(webclient, activity_id, data_type=DataFormat.ORIGINAL):	
 	""" 
 	Recuperation du fichier de l'activite voulue en utilisant WebClient 
 
@@ -252,10 +279,10 @@ def get_activity_data(webclient, activity):
 	:return: Le `filename` du fichier recupere et cree
 	:rtype: str
 	"""
-	activity_id = activity.id
+#	activity_id = activity.id
 
 	# Get the filename and data stream for the activity data
-	data = webclient.get_activity_data(activity_id, fmt=DataFormat.ORIGINAL)
+	data = webclient.get_activity_data(activity_id, fmt=data_type)
 
 	# Save the activity data to disk using the server-provided filename
 	with open(data.filename, 'wb') as f:
