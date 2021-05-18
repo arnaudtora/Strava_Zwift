@@ -120,13 +120,17 @@ for activity in list_act:
 # Filtre sur le nom, qui ne contient pas 'CopyForWandrer'
 print("\n\n## Modification et envoie des activites ##")
 for activity in list_act:
+	if(activity.start_latitude == None):
+		print("Activite " + activity.name + " non modifie et envoyee, car ne contient pas de trace GPS")
+		continue
+
+	print("\n\n")
+	print("#########################")
 	print(activity)
 	
 	# Téléchargement des datas	
 	data_filename = strava_tools.get_activity_data(webclient_dest, activity.id, DataFormat.TCX)
-	print("Act initial : " + data_filename)
 	date_initial = activity.start_date.strftime("%Y-%m-%d")
-	print("date : " + date_initial)
 	derniere_date_ajout = derniere_date_ajout + datetime.timedelta(days=1)
 	date_ajout = derniere_date_ajout.strftime("%Y-%m-%d")
 	data_filename_modif= "_CopyForWandrer_" + date_initial + "_" + date_ajout + "_" + data_filename.replace(".tcx", "")
@@ -141,8 +145,6 @@ for activity in list_act:
 			# Modification de la date
 			if("<Id>" in ligne):
 				date_a_modifier = ligne.split("<Id>")[1].split("T")[0]
-				print("Date1 : " + date_a_modifier)
-				print("Date2 : " + str(date_ajout))
 				ligne = ligne.replace(date_a_modifier, date_ajout)
 			elif(date_a_modifier != ""):
 				ligne = ligne.replace(date_a_modifier, date_ajout)
