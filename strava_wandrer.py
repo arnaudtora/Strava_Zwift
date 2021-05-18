@@ -62,39 +62,58 @@ webclient_dest = strava_tools.get_webclient(creds_dest)
 
 
 # Clean des activites 2000 - A supprimer a la fin
-after  = "2005-01-01T00:00:00Z"
-before = "2010-10-01T00:00:00Z"
+after  = "2000-01-01T00:00:00Z"
+before = "2005-10-01T00:00:00Z"
 list_act = strava_tools.get_first_N_activity(client_dest, after, before, "All", 10000)
 # for delete_act in list_act:
 # 	if "_CopyForWandrer_" in delete_act.name :
 # 		print(delete_id)
 # 		strava_tools.delete_strava_activity(webclient_dest, delete_act)
 
-print(list_act)
 # Recherche de la derniere activite uploadee
 # Pour trouver la date 'after'
 print("\n\n## Recherche de la derniere activite uploadee ##")
-derniere_date_ajout = datetime.datetime(2010, 1, 1)
+derniere_date_recuperation = datetime.datetime(2012, 8, 9)
+derniere_date_ajout = datetime.datetime(2000, 1, 1)
 for act in list_act:
 	print (act)
 	if("_CopyForWandrer_" in act.name):
-		print (act.name)
-		derniere_date_ajout = act.name.split("_")[2]
-		annee=derniere_date_ajout.split("-")[0]
-		mois=derniere_date_ajout.split("-")[1]
-		jour=derniere_date_ajout.split("-")[2]
-		derniere_date_ajout = datetime.datetime(int(annee), int(mois), int(jour))
-		print(derniere_date_ajout)
+
+		derniere_date_recuperation = act.name.split("_")[2]
+		annee_recup=derniere_date_recuperation.split("-")[0]
+		mois_recup=derniere_date_recuperation.split("-")[1]
+		jour_recup=derniere_date_recuperation.split("-")[2]
+		derniere_date_recuperation = datetime.datetime(int(annee_recup), int(mois_recup), int(jour_recup))
+
+		derniere_date_ajout = act.name.split("_")[3]
+		annee_ajout=derniere_date_ajout.split("-")[0]
+		mois_ajout=derniere_date_ajout.split("-")[1]
+		jour_ajout=derniere_date_ajout.split("-")[2]
+		derniere_date_ajout = datetime.datetime(int(annee_ajout), int(mois_ajout), int(jour_ajout))
+
 	else:
 		break
 
-print("La derniere uploadee est")
+print("La derniere date d'activite uploadee est")
+print(derniere_date_recuperation)
+print("La derniere activitite a ete uploadee en fake le ")
 print(derniere_date_ajout)
 
+
 # Récupération des N premieres activites, du type voulu
-after = derniere_date_ajout+"T00:00:00Z"
-before = "2013-01-01T00:00:00Z"
-list_act = strava_tools.get_first_N_activity(client_dest, after, before, type_act, 5)
+after_date_recherche=derniere_date_recuperation + datetime.timedelta(days=1)
+before_date_recherche=derniere_date_recuperation + datetime.timedelta(days=30)
+after = after_date_recherche.strftime("%Y-%m-%d")+"T00:00:00Z"
+before = before_date_recherche.strftime("%Y-%m-%d")+"T00:00:00Z"
+print("\n\n##Récupération des N premieres activites##")
+print(after)
+print(before)
+list_act = strava_tools.get_first_N_activity(client_dest, after, before, type_act, 100)
+
+
+print("\n\n## Les activites qui vont etre modifiees et envoyees sont ##")
+for activity in list_act:
+	print(str(activity.id) + " - " + activity.start_date.strftime("%Y-%m-%d") + " - " + activity.name)
 
 
 # Pour toutes les activites choisis
@@ -144,7 +163,7 @@ for activity in list_act:
 		activity = uploader.wait()		
 		print ("Activite upload, voir https://www.strava.com/activities/" + str(activity.id))
 
-		# # Suppression du fichier telecharge
-		# os.remove(data_filename)
+		# Suppression du fichier telecharge
+		os.remove(data_filename)
 
 	time.sleep(10)
