@@ -65,10 +65,10 @@ webclient_dest = strava_tools.get_webclient(creds_dest)
 after  = "2000-01-01T00:00:00Z"
 before = "2005-10-01T00:00:00Z"
 list_act = strava_tools.get_first_N_activity(client_dest, after, before, "All", 10000)
-# for delete_act in list_act:
-# 	if "_CopyForWandrer_" in delete_act.name :
-# 		print(delete_id)
-# 		strava_tools.delete_strava_activity(webclient_dest, delete_act)
+for delete_act in list_act:
+	if "_CopyForWandrer_" in delete_act.name :
+		print("Suppression de " + str(delete_id))
+		strava_tools.delete_strava_activity(webclient_dest, delete_act)
 
 # Recherche de la derniere activite uploadee
 # Pour trouver la date 'after'
