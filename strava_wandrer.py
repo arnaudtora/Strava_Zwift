@@ -78,7 +78,6 @@ derniere_date_ajout = datetime.datetime(2000, 1, 1)
 for act in list_act:
 	print (act)
 	if("_CopyForWandrer_" in act.name):
-
 		derniere_date_recuperation = act.name.split("_")[2]
 		annee_recup=derniere_date_recuperation.split("-")[0]
 		mois_recup=derniere_date_recuperation.split("-")[1]
@@ -102,14 +101,13 @@ print(derniere_date_ajout)
 
 # Récupération des N premieres activites, du type voulu
 after_date_recherche=derniere_date_recuperation + datetime.timedelta(days=1)
-before_date_recherche=derniere_date_recuperation + datetime.timedelta(days=30)
+before_date_recherche=derniere_date_recuperation + datetime.timedelta(days=180)
 after = after_date_recherche.strftime("%Y-%m-%d")+"T00:00:00Z"
 before = before_date_recherche.strftime("%Y-%m-%d")+"T00:00:00Z"
-print("\n\n##Récupération des N premieres activites##")
+print("\n\n##Récupération des N premieres activites entre ##")
 print(after)
 print(before)
-list_act = strava_tools.get_first_N_activity(client_dest, after, before, type_act, 100)
-
+list_act = strava_tools.get_first_N_activity(client_dest, after, before, type_act, 100000)
 
 print("\n\n## Les activites qui vont etre modifiees et envoyees sont ##")
 for activity in list_act:
@@ -126,9 +124,11 @@ for activity in list_act:
 
 	print("\n\n")
 	print("#########################")
+	print(activity.location_city)
 	print(activity)
 	
 	# Téléchargement des datas	
+	print("Telechargement des data")
 	data_filename = strava_tools.get_activity_data(webclient_dest, activity.id, DataFormat.TCX)
 	date_initial = activity.start_date.strftime("%Y-%m-%d")
 	derniere_date_ajout = derniere_date_ajout + datetime.timedelta(days=1)
@@ -165,7 +165,8 @@ for activity in list_act:
 		activity = uploader.wait()		
 		print ("Activite upload, voir https://www.strava.com/activities/" + str(activity.id))
 
-		# Suppression du fichier telecharge
-		os.remove(data_filename)
+	# Suppression du fichier telecharge
+	os.remove(data_filename)
+	os.remove(data_filename_modif)
 
-	time.sleep(10)
+	time.sleep(60)
