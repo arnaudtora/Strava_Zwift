@@ -79,7 +79,7 @@ webclient_dest = strava_tools.get_webclient(creds_dest)
 last_activite_source = strava_tools.get_last_activity(client_source)
 print ("Derniere activite = " + last_activite_source.name + " --- " + str(last_activite_source.id))
 
-data_filename = strava_tools.get_activity_data(webclient_source, last_activite_source)
+data_filename = strava_tools.get_activity_data(webclient_source, last_activite_source.id)
 
 strava_tools.upload_existing_activite(client_dest, data_filename, type_ride)
 
